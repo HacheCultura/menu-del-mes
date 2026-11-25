@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f5c3a">
+<meta name="description" content="Menús semanales para una persona, recetas y lista de la compra con precios de Mercadona y Carrefour.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Menú del mes">
+<title>Menú del mes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: practical, warm kitchen planner for one person
+   IDEA: the weekly planner stuck on the fridge, with the market list beside it
+   PICTURE: the week board itself, days with hanging names and colour-coded meals
+   COLOUR and TYPE: market green field, tomato accent, white ground; Archivo 800 + 400
+   LAYOUT: green header band with actions, week tabs, board, then the shopping list in columns */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0f1511);--ink:light-dark(#17201a,#e8eee9);--mut:light-dark(#5a685e,#9fb0a4);--line:light-dark(#e2e8e3,#27322b);--card:light-dark(#f4f8f5,#162019);--green:light-dark(#1f5c3a,#163d27);--tom:#e8452c}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Archivo,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--tom);outline-offset:2px}
+.top{background:var(--green);color:#fff;padding-bottom:clamp(20px,3vw,36px);padding-top:max(clamp(24px,4vw,56px),env(safe-area-inset-top));padding-left:max(5vw,16px,env(safe-area-inset-left));padding-right:max(5vw,16px,env(safe-area-inset-right))}
+body{padding-bottom:env(safe-area-inset-bottom)}
+.inst{display:none}.inst.show{display:inline-flex}
+.top .wrap{display:flex;flex-wrap:wrap;gap:20px 32px;align-items:flex-end;justify-content:space-between}
+h1{font-size:clamp(34px,5vw,52px);line-height:1.05;font-weight:800;margin:0;text-wrap:balance}
+.top p{margin:8px 0 0;max-width:60ch;opacity:.88}
+.act{display:flex;gap:10px;flex-wrap:wrap}
+.pri,.sec{min-height:46px;padding:0 20px;border-radius:12px;font-weight:600;border:0}
+.pri{background:var(--tom);color:#fff}
+.pri:hover{filter:brightness(1.08)}
+.top .sec{background:transparent;border:1.5px solid rgba(255,255,255,.55);color:#fff}
+.sec{background:var(--card);border:1px solid var(--line)}
+.sec:disabled{opacity:.4;cursor:default}
+.note{background:var(--tom);color:#fff;border-radius:10px;padding:8px 14px;margin-top:14px;display:inline-block;font-weight:500}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;padding-block:20px 0}
+.tab{min-height:56px;padding:8px 16px;border-radius:12px;border:1px solid var(--line);background:var(--bg);text-align:left;display:flex;flex-direction:column;line-height:1.2}
+.tab span{font-size:13px;color:var(--mut)}
+.tab.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab.on span{color:inherit;opacity:.75}
+h2{font-size:clamp(26px,3vw,32px);line-height:1.1;margin:0 0 6px;font-weight:800}
+.sum{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.chip{font-size:13px;padding:4px 10px;border-radius:99px;background:var(--card);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px}
+.chip i,.k i{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.day{display:grid;grid-template-columns:8.5rem minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.day.head{border:0;padding:0 0 4px;font-size:13px;color:var(--mut);font-weight:600}
+.dn{font-weight:800;font-size:20px;line-height:1.1;padding-top:10px}
+.dn small{display:block;font-weight:400;font-size:13px;color:var(--mut);margin-top:3px}
+.slot{position:relative}
+.ml{display:none;font-size:13px;color:var(--mut);font-weight:600;margin-bottom:4px}
+.meal{display:block;width:100%;height:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 50px 12px 14px;min-height:68px}
+.meal:hover{border-color:var(--mut)}
+.k{font-size:13px;color:var(--mut);display:flex;gap:6px;align-items:center}
+.meal b{display:block;font-size:17px;font-weight:600;line-height:1.25;margin-top:3px}
+.sw{position:absolute;right:6px;bottom:12px;width:40px;height:40px;border-radius:10px;border:0;background:transparent;color:var(--mut);font-size:20px}
+.sw:hover{background:var(--line);color:var(--ink)}
+.fresh .day{animation:in .45s both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+@media(prefers-reduced-motion:reduce){.fresh .day{animation:none}}
+.shopband{background:var(--card);border-top:1px solid var(--line)}
+.shead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:22px}
+.shead p{margin:0;color:var(--mut);max-width:62ch}
+.cols{columns:250px 3;column-gap:36px}
+.grp{break-inside:avoid;margin-bottom:24px}
+.grp h3{font-size:17px;margin:0 0 6px;font-weight:800;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.grp ul{list-style:none;margin:0;padding:0}
+.grp label{display:flex;gap:10px;align-items:center;min-height:40px;border-bottom:1px solid var(--line);cursor:pointer}
+.grp input{width:20px;height:20px;accent-color:var(--tom);flex:none}
+.q{margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--mut);text-align:right}
+.done span{text-decoration:line-through;opacity:.5}
+.pantry{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+dialog{border:0;border-radius:18px;padding:0;width:min(680px,calc(100% - 24px));background:var(--bg);color:var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(10,20,14,.55)}
+.dh{background:var(--green);color:#fff;padding:22px 24px}
+.dh .k{color:#fff;opacity:.85}
+.dh h3{font-size:clamp(24px,4vw,32px);line-height:1.1;margin:6px 0 0;font-weight:800}
+.db{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:24px;padding:20px 24px}
+.db h4{margin:0 0 6px;font-size:15px}
+.db ul{list-style:none;margin:0;padding:0}
+.db li{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.db li.pt{color:var(--mut);font-size:13px;border:0}
+.db p{margin:0}
+.df{display:flex;gap:10px;justify-content:flex-end;padding:0 24px 22px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:10px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.pb{padding:18px 24px;max-height:62vh;overflow:auto}
+.pb h4{margin:18px 0 8px;font-size:15px}.pb h4:first-child{margin-top:0}
+.pc{display:flex;flex-wrap:wrap;gap:8px}
+.pt,.pg{min-height:40px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:var(--bg);font-size:15px}
+.pt.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pg.no{background:var(--tom);color:#fff;border-color:var(--tom)}
+.pg.si{background:#2f8a4a;color:#fff;border-color:#2f8a4a}
+.hint{font-size:14px;color:var(--mut);margin:0 0 8px}
+.pb input{width:100%;min-height:44px;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--card);color:inherit;margin-bottom:10px}
+#pi{max-height:260px;overflow:auto;padding:2px}
+.pn{flex:1 1 200px;align-self:center;color:var(--mut);font-size:14px}
+.tots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:10px;margin-bottom:12px}
+.tot{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--bg);min-height:84px}
+.tot span{font-weight:600}.tot b{font-size:clamp(24px,3vw,30px);font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}.tot small{font-size:13px;color:var(--mut)}
+.tot.on{border:2px solid var(--ink)}
+.tot.best b{color:var(--tom)}
+.fine{font-size:14px;color:var(--mut);margin:0 0 22px;max-width:90ch}
+.fine b{color:var(--ink)}
+.lnk{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;font-size:14px}
+.grp li{display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
+.grp li label{flex:1;border:0}
+.nm small{display:block;font-size:13px;color:var(--mut);line-height:1.3}
+.pe{min-height:40px;min-width:68px;padding:0 8px;border-radius:8px;border:1px dashed var(--line);background:transparent;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.pe:hover{border-color:var(--mut)}
+.pe.none{color:var(--tom);font-size:14px}
+.xr{border:1px solid var(--line);border-radius:12px;padding:8px 12px 4px;margin:0 0 12px;display:grid;grid-template-columns:1fr 1fr auto;gap:0 10px;align-items:end}
+.xr legend{font-weight:700;padding:0 4px}
+.xr label{font-size:13px;color:var(--mut)}
+.xr .wide{grid-column:1/-1}
+.xr .cb{display:flex;gap:6px;align-items:center;min-height:44px;margin-bottom:10px;color:var(--ink);font-size:15px}
+.xr .cb input{width:20px;height:20px;min-height:0;margin:0;accent-color:var(--tom)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.sb{min-height:46px;padding:0 14px;border:0;background:var(--bg);font-weight:600}
+.sb+.sb{border-left:1px solid var(--line)}
+.sb[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.filt{font-size:14px;color:var(--mut);margin:-6px 0 14px}
+.filt b{color:var(--ink);font-weight:600}
+.warn{color:var(--tom);font-weight:600}
+@media(max-width:600px){.day{grid-template-columns:minmax(0,1fr)}.day.head{display:none}.ml{display:block}.dn{padding-top:4px}.db{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<header class="band top">
+  <div class="wrap">
+    <div>
+      <h1>Menú del mes</h1>
+      <p id="sub">Comida y cena para una persona, cuatro semanas sin repetir plato. Pulsa un plato para ver la receta.</p>
+      <div id="note"></div>
+    </div>
+    <div class="act">
+      <button id="prefs" class="sec">Mis preferencias</button>
+      <button id="inst" class="sec inst">Instalar app</button>
+      <button id="mix" class="pri">Mezclar menús</button>
+      <button id="undo" class="sec">Deshacer</button>
+    </div>
+  </div>
+</header>
+<div class="wrap" style="padding-inline:max(5vw,16px)"><nav class="tabs" id="tabs" aria-label="Semanas"></nav></div>
+<main>
+  <section class="band" style="padding-top:24px">
+    <div class="wrap">
+      <h2 id="wt">Semana 1</h2>
+      <div class="sum" id="sum"></div>
+      <p class="filt" id="filt"></p>
+      <div id="board"></div>
+    </div>
+  </section>
+  <section class="band shopband">
+    <div class="wrap">
+      <div class="shead">
+        <div><h2 id="st">Lista de la compra</h2><p>Cantidades para los platos de esta semana más desayunos y fruta. Lo de despensa dura más: compra solo si se acaba.</p></div>
+        <div class="act"><button class="sec" id="clear">Desmarcar</button><span class="seg" role="group" aria-label="Comprar en"><button class="sb" data-b="m">Mercadona</button><button class="sb" data-b="c">Carrefour</button><button class="sb" data-b="">Comparar</button></span><button class="sec" id="order">Copiar pedido</button><button class="pri" id="copy">Copiar lista</button></div>
+      </div>
+      <div class="tots" id="tots" role="tablist" aria-label="Supermercado"></div>
+      <p class="fine" id="fine"></p>
+      <div class="cols" id="shop"></div>
+    </div>
+  </section>
+</main>
+<dialog id="dlg"></dialog>
+<dialog id="pdlg"></dialog>
+<dialog id="xdlg"></dialog>
+<div class="toast" id="toast"></div>
+<script>
+{
+const $=s=>document.querySelector(s);
+const KEY="menuMes.v1";
+const T={leg:["Legumbre","#a06a2c"],arr:["Arroz","#d1a000"],pas:["Pasta","#e07a28"],pes:["Pescado","#2f74c0"],bla:["Carne blanca","#cc5a8a"],roj:["Carne roja","#b3261e"],hue:["Huevo","#c9a227"],ver:["Verdura","#2f8a4a"],ens:["Ensalada","#6aa52f"],lib:["Cena ligera","#8462c0"]};
+const DAYS=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const CATS=[["v","Fruta y verdura"],["c","Carnicería y charcutería"],["p","Pescadería"],["l","Huevos, lácteos y frescos"],["b","Panadería"],["g","Congelados"],["d","Despensa"]];
+const BASICS="Plátanos|4|ud|v;Manzanas|4|ud|v;Mandarinas o naranjas|1000|g|v;Kiwis|3|ud|v;Yogur natural|7|ud|l;Leche|1500|ml|l;Huevos|2|ud|l;Pan integral (barra)|3|ud|b;Copos de avena|250|g|d;Frutos secos naturales|150|g|d";
+const PANTRY=["Aceite de oliva virgen extra","Sal","Pimienta","Pimentón dulce","Comino","Curry","Orégano","Azafrán","Laurel","Vinagre","Salsa de soja","Pan rallado","Harina","Café o infusiones"];
+const LT=["leg","leg","arr","pas","pes","bla","roj"],DT=["pes","pes","hue","hue","ver","ens","lib"];
+const DB={l:{
+leg:[
+["Garbanzos con espinacas",25,"Garbanzos cocidos|250|g|d;Espinacas frescas|150|g|v;Ajo (dientes)|2|ud|v","Dora los ajos laminados en aceite, añade una cucharadita de pimentón y otra de comino y enseguida las espinacas hasta que bajen. Incorpora los garbanzos escurridos con un chorrito de agua y deja 5 minutos a fuego suave."],
+["Lentejas estofadas con verduras",40,"Lentejas pardinas|90|g|d;Zanahorias|1|ud|v;Pimiento verde|1|ud|v;Cebolla|0.5|ud|v;Patatas|150|g|v;Ajo (dientes)|1|ud|v","Sofríe cebolla, pimiento y ajo picados. Añade la zanahoria y la patata en dados, las lentejas lavadas, una hoja de laurel, pimentón y agua que las cubra el doble. Cuece 30 a 35 minutos a fuego medio."],
+["Alubias blancas con almejas",25,"Alubias blancas cocidas|250|g|d;Almejas|150|g|p;Cebolla|0.5|ud|v;Ajo (dientes)|2|ud|v;Perejil fresco|0.25|manojo|v","Pocha la cebolla y el ajo, añade una cucharadita de harina y un vaso de agua o caldo. Incorpora las alubias; cuando hierva echa las almejas lavadas y tapa hasta que se abran. Termina con perejil picado."],
+["Ensalada templada de garbanzos y atún",15,"Garbanzos cocidos|200|g|d;Atún en lata|1|lata|d;Tomates|1|ud|v;Pepino|0.5|ud|v;Cebolla morada|0.25|ud|v;Huevos|1|ud|l","Cuece el huevo 10 minutos. Saltea los garbanzos 2 minutos con aceite y comino. Mezcla con tomate, pepino, cebolla, atún y el huevo troceado; aliña con aceite, vinagre y sal."],
+["Lentejas rojas al curry con arroz",30,"Lentejas rojas|80|g|d;Leche de coco|100|ml|d;Cebolla|0.5|ud|v;Tomate triturado|100|g|d;Arroz basmati|50|g|d;Ajo (dientes)|1|ud|v","Sofríe cebolla y ajo con una cucharada de curry. Añade las lentejas, el tomate, la leche de coco y 250 ml de agua; cuece 15 a 20 minutos hasta que se deshagan. Sirve con el arroz cocido."],
+["Potaje de garbanzos con bacalao",35,"Garbanzos cocidos|250|g|d;Bacalao desalado|120|g|p;Espinacas frescas|100|g|v;Cebolla|0.5|ud|v;Huevos|1|ud|l","Sofríe la cebolla con pimentón, añade los garbanzos y agua o caldo hasta cubrir. Cuando hierva, incorpora las espinacas y el bacalao en trozos; 8 minutos a fuego suave. Sirve con el huevo duro picado."],
+["Fabada ligera",30,"Alubias blancas cocidas|250|g|d;Chorizo|40|g|c;Lacón o jamón en taco|40|g|c;Cebolla|0.5|ud|v","Dora el chorizo y el lacón en trozos con la cebolla picada. Añade las alubias, agua hasta cubrir y unas hebras de azafrán. Cuece 20 minutos a fuego suave, moviendo la cazuela en vez de remover."],
+["Bowl de hummus con pollo",25,"Garbanzos cocidos|200|g|d;Tahini|20|g|d;Limones|0.5|ud|v;Pechuga de pollo|120|g|c;Pepino|0.5|ud|v;Tomates cherry|100|g|v;Ajo (dientes)|1|ud|v","Tritura los garbanzos con tahini, el zumo del limón, el ajo, aceite y un poco de agua hasta que quede cremoso. Haz el pollo a la plancha en tiras con pimentón. Monta el bol con hummus, pollo, pepino y tomates."],
+["Lentejas con arroz y calabacín",35,"Lentejas pardinas|70|g|d;Arroz|40|g|d;Calabacín|0.5|ud|v;Cebolla|0.5|ud|v;Zanahorias|1|ud|v","Sofríe cebolla, zanahoria y calabacín picados. Añade las lentejas y el triple de su volumen en agua, cuece 20 minutos, incorpora el arroz y cuece 15 minutos más."],
+["Chili de alubias rojas con arroz",30,"Alubias rojas cocidas|250|g|d;Tomate triturado|150|g|d;Pimiento rojo|0.5|ud|v;Cebolla|0.5|ud|v;Maíz dulce|0.5|lata|d;Arroz|50|g|d","Sofríe cebolla y pimiento con comino, pimentón y una pizca de picante. Añade el tomate, las alubias y el maíz; 15 minutos a fuego suave. Sirve con el arroz cocido."],
+["Ensalada de lentejas y feta",15,"Lentejas cocidas|250|g|d;Pimiento rojo|0.5|ud|v;Tomates|1|ud|v;Queso feta|40|g|l;Cebolla morada|0.25|ud|v","Enjuaga las lentejas. Mézclalas con las verduras en dados y el feta desmenuzado. Aliña con aceite, vinagre, orégano y sal."]],
+arr:[
+["Arroz con pollo y verduras",40,"Arroz|80|g|d;Muslo de pollo deshuesado|150|g|c;Pimiento rojo|0.5|ud|v;Judías verdes|80|g|v;Tomate triturado|80|g|d;Caldo de pollo|250|ml|d","Dora el pollo troceado, añade pimiento y judías, luego el tomate y pimentón. Incorpora el arroz, rehógalo un minuto y cubre con el caldo caliente y azafrán. 18 minutos de cocción y 5 de reposo."],
+["Paella de marisco",40,"Arroz|80|g|d;Gambas|100|g|p;Calamar|100|g|p;Pimiento rojo|0.5|ud|v;Tomate triturado|80|g|d;Caldo de pescado|250|ml|d","Saltea las gambas y resérvalas. Sofríe calamar y pimiento, añade tomate, el arroz y el caldo caliente con azafrán. 18 minutos sin remover; pon las gambas encima al final y deja reposar 5 minutos."],
+["Arroz caldoso de verduras",35,"Arroz|70|g|d;Alcachofas|2|ud|v;Calabacín|0.5|ud|v;Champiñones|100|g|v;Cebolla|0.5|ud|v;Caldo de verduras|400|ml|d","Sofríe cebolla, champiñones, calabacín y las alcachofas limpias en cuartos. Añade el arroz y el caldo caliente; cuece 18 minutos. Debe quedar meloso, con caldo."],
+["Arroz tres delicias casero",25,"Arroz|80|g|d;Huevos|1|ud|l;Jamón cocido|50|g|c;Guisantes|60|g|g;Zanahorias|1|ud|v","Cuece el arroz y deja que se enfríe (mejor si es del día anterior). Haz una tortilla fina y córtala en tiras. Saltea la zanahoria picada, los guisantes y el jamón, añade el arroz, la tortilla y un chorrito de soja."],
+["Risotto de champiñones",35,"Arroz|80|g|d;Champiñones|150|g|v;Cebolla|0.5|ud|v;Queso parmesano|25|g|l;Caldo de verduras|400|ml|d","Sofríe cebolla y champiñones. Añade el arroz, rehógalo y ve echando el caldo caliente poco a poco removiendo, unos 18 minutos. Fuera del fuego mezcla el parmesano rallado."],
+["Arroz al horno",60,"Arroz|80|g|d;Costilla de cerdo|100|g|c;Morcilla|60|g|c;Garbanzos cocidos|60|g|d;Patatas|100|g|v;Tomates|1|ud|v;Caldo de pollo|250|ml|d","Dora la costilla y la morcilla en una fuente apta para horno. Añade el arroz, los garbanzos, la patata en rodajas y medio tomate en el centro. Cubre con el caldo caliente y hornea 20 minutos a 200 ºC."]],
+pas:[
+["Espaguetis a la boloñesa",30,"Espaguetis|90|g|d;Carne picada de ternera|100|g|c;Tomate triturado|150|g|d;Zanahorias|1|ud|v;Cebolla|0.5|ud|v","Sofríe cebolla y zanahoria picadas, dora la carne y añade el tomate y orégano; 15 minutos. Cuece la pasta al dente y mézclala con la salsa."],
+["Macarrones con atún y tomate",20,"Macarrones|90|g|d;Atún en lata|1|lata|d;Tomate triturado|150|g|d;Cebolla|0.5|ud|v","Pocha la cebolla, añade el tomate y un poco de orégano; 10 minutos. Mezcla el atún escurrido y la pasta cocida."],
+["Pasta integral con pollo, pesto y cherrys",20,"Pasta integral|90|g|d;Pechuga de pollo|100|g|c;Pesto|30|g|d;Tomates cherry|100|g|v","Cuece la pasta. Mientras, dora el pollo en dados y saltea los cherrys partidos un minuto. Mezcla todo con el pesto y un chorrito del agua de cocción."],
+["Espaguetis con gambas al ajillo",20,"Espaguetis|90|g|d;Gambas|120|g|p;Ajo (dientes)|2|ud|v;Perejil fresco|0.25|manojo|v","Cuece la pasta. Dora el ajo laminado con una guindilla, añade las gambas peladas 2 minutos. Mezcla con la pasta y el perejil."],
+["Fideuá",35,"Fideos gruesos|80|g|d;Gambas|80|g|p;Calamar|80|g|p;Tomate triturado|60|g|d;Caldo de pescado|250|ml|d","Tuesta los fideos en aceite hasta que se doren y resérvalos. Sofríe calamar y gambas, añade tomate, los fideos y el caldo caliente; 10 minutos hasta que se absorba. Bien con alioli."],
+["Pasta con brócoli y parmesano",20,"Pasta integral|90|g|d;Brócoli|200|g|v;Ajo (dientes)|2|ud|v;Queso parmesano|20|g|l","Cuece el brócoli en ramitos junto con la pasta los últimos 4 minutos. Escurre y saltea con ajo laminado y aceite. Termina con el parmesano y pimienta."]],
+pes:[
+["Salmón al horno con patata y brócoli",35,"Salmón (lomo)|150|g|p;Patatas|200|g|v;Brócoli|150|g|v;Limones|0.5|ud|v","Hornea la patata en gajos 20 minutos a 200 ºC. Añade el brócoli y el salmón con sal, pimienta y limón; 12 minutos más."],
+["Merluza en salsa verde con patatas",30,"Merluza|180|g|p;Patatas|200|g|v;Almejas|80|g|p;Ajo (dientes)|2|ud|v;Perejil fresco|0.25|manojo|v","Cuece la patata en rodajas. Dora el ajo, añade una cucharadita de harina, un vaso de agua y perejil. Pon la merluza y las almejas, mueve la cazuela 5 minutos hasta que ligue la salsa."],
+["Dorada al horno con patatas panaderas",45,"Dorada (ración)|1|ud|p;Patatas|250|g|v;Cebolla|0.5|ud|v;Pimiento verde|0.5|ud|v;Limones|0.5|ud|v","Hornea patata, cebolla y pimiento en láminas con aceite 25 minutos a 190 ºC. Pon encima la dorada limpia con rodajas de limón y hornea 15 minutos más."],
+["Bacalao con pisto",40,"Bacalao fresco|160|g|p;Calabacín|0.5|ud|v;Pimiento rojo|0.5|ud|v;Cebolla|0.5|ud|v;Tomate triturado|150|g|d","Haz el pisto pochando cebolla, pimiento y calabacín en dados y añadiendo el tomate; 20 minutos. Cocina el bacalao a la plancha o dentro del pisto los últimos 6 minutos."],
+["Caballa a la plancha con ensalada de patata",25,"Caballa|1|ud|p;Patatas|200|g|v;Tomates|1|ud|v;Cebolla morada|0.25|ud|v;Huevos|1|ud|l","Cuece la patata y el huevo. Haz la caballa en filetes a la plancha por la piel. Sirve con la patata, tomate, cebolla y huevo aliñados con aceite y vinagre."],
+["Atún encebollado con arroz",30,"Atún fresco|170|g|p;Cebolla|1|ud|v;Arroz|50|g|d","Pocha la cebolla en juliana 15 minutos con laurel y un chorrito de vino o vinagre. Añade el atún en dados, 3 minutos y apaga. Sirve con el arroz blanco."]],
+bla:[
+["Pollo al curry con arroz basmati",30,"Pechuga de pollo|150|g|c;Cebolla|0.5|ud|v;Yogur natural|1|ud|l;Arroz basmati|60|g|d;Espinacas frescas|50|g|v","Dora el pollo en dados con la cebolla y una cucharada de curry. Añade un poco de agua y las espinacas, y al final el yogur fuera del fuego. Sirve con el arroz."],
+["Muslos de pollo asados con verduras",50,"Muslos de pollo|2|ud|c;Patatas|150|g|v;Pimiento rojo|0.5|ud|v;Cebolla|0.5|ud|v;Limones|0.5|ud|v","Pon en una fuente los muslos con las verduras troceadas, limón, ajo, aceite y especias. Hornea 40 minutos a 200 ºC, dándoles la vuelta a mitad."],
+["Wok de pavo con verduras y fideos de arroz",20,"Pechuga de pavo|140|g|c;Fideos de arroz|70|g|d;Pimiento rojo|0.5|ud|v;Zanahorias|1|ud|v;Calabacín|0.5|ud|v","Hidrata los fideos en agua caliente. Saltea el pavo en tiras a fuego fuerte, añade las verduras en bastones 3 minutos, luego los fideos y soja."],
+["Pollo al ajillo con ensalada",30,"Contramuslos de pollo|180|g|c;Ajo (dientes)|4|ud|v;Mezcla de ensalada|80|g|v;Tomates|1|ud|v","Dora el pollo troceado con los ajos enteros chafados y laurel a fuego medio 20 minutos. Añade un chorrito de vino o agua y reduce. Acompaña con la ensalada."],
+["Lomo de cerdo con pimientos asados y patata",35,"Lomo de cerdo|150|g|c;Pimiento rojo|1|ud|v;Patatas|200|g|v","Asa el pimiento y la patata en el horno 30 minutos a 200 ºC. Haz el lomo a la plancha y sirve con el pimiento pelado en tiras y la patata."],
+["Albóndigas de pavo en salsa de tomate",40,"Carne picada de pavo|140|g|c;Huevos|1|ud|l;Tomate triturado|200|g|d;Cebolla|0.5|ud|v;Arroz|50|g|d","Mezcla la carne con el huevo, pan rallado, ajo y perejil; forma bolitas y dóralas. Pocha la cebolla, añade el tomate y las albóndigas; 15 minutos. Sirve con arroz."]],
+roj:[
+["Ternera guisada con patatas",90,"Ternera para guisar|150|g|c;Patatas|200|g|v;Zanahorias|1|ud|v;Cebolla|0.5|ud|v;Guisantes|50|g|g","Dora la carne enharinada, añade cebolla y zanahoria, un chorrito de vino y agua hasta cubrir con laurel; 60 minutos (20 en olla exprés). Añade la patata y los guisantes y cuece 20 minutos más."],
+["Hamburguesa casera con ensalada",20,"Carne picada de ternera|150|g|c;Pan de hamburguesa integral|1|ud|b;Tomates|1|ud|v;Mezcla de ensalada|60|g|v;Cebolla morada|0.25|ud|v","Forma la hamburguesa con sal y pimienta y hazla a la plancha 3 o 4 minutos por lado. Monta en el pan tostado con tomate y cebolla y acompaña con ensalada."],
+["Filete de ternera con pimientos de Padrón",30,"Filete de ternera|160|g|c;Pimientos de Padrón|100|g|v;Patatas|200|g|v","Asa la patata en gajos 25 minutos en el horno o la freidora de aire. Fríe los pimientos con sal gorda y haz el filete a la plancha muy caliente."],
+["Chili con carne",40,"Carne picada de ternera|120|g|c;Alubias rojas cocidas|150|g|d;Tomate triturado|150|g|d;Pimiento rojo|0.5|ud|v;Cebolla|0.5|ud|v;Arroz|50|g|d","Sofríe cebolla y pimiento, dora la carne con comino, pimentón y picante. Añade tomate y alubias y cuece 20 minutos. Sirve con arroz."],
+["Fajitas de ternera",25,"Tiras de ternera|150|g|c;Tortillas de trigo|2|ud|b;Pimiento rojo|0.5|ud|v;Pimiento verde|0.5|ud|v;Cebolla|0.5|ud|v;Yogur natural|1|ud|l","Saltea a fuego fuerte la ternera con comino y pimentón, añade las verduras en tiras 3 minutos. Rellena las tortillas calientes y usa el yogur como salsa con sal y limón."]]
+},d:{
+pes:[
+["Merluza a la plancha con ensalada",15,"Merluza|180|g|p;Mezcla de ensalada|80|g|v;Tomates|1|ud|v;Limones|0.5|ud|v","Seca bien la merluza, sálala y hazla a la plancha 3 minutos por lado, empezando por la piel. Sirve con la ensalada aliñada y limón."],
+["Salmón con espárragos trigueros",15,"Salmón (lomo)|140|g|p;Espárragos trigueros|150|g|v","Haz los espárragos a la plancha con sal. En la misma sartén cocina el salmón 4 minutos por la piel y 2 por el otro lado."],
+["Lubina al papillote",25,"Lubina (ración)|1|ud|p;Calabacín|0.5|ud|v;Zanahorias|1|ud|v;Limones|0.5|ud|v","Pon sobre papel de horno las verduras en tiras finas y encima la lubina abierta con limón, sal y aceite. Cierra el paquete y hornea 15 minutos a 200 ºC."],
+["Gambas al ajillo con ensalada",15,"Gambas|150|g|p;Ajo (dientes)|3|ud|v;Mezcla de ensalada|80|g|v","Dora el ajo laminado con una guindilla en una cazuelita, añade las gambas peladas y cocina 2 minutos. Acompaña con la ensalada."],
+["Sepia a la plancha con ensalada",15,"Sepia|180|g|p;Ajo (dientes)|1|ud|v;Perejil fresco|0.25|manojo|v;Mezcla de ensalada|80|g|v;Tomates|1|ud|v","Haz la sepia a la plancha muy caliente 2 o 3 minutos por lado. Riega con un majado de ajo, perejil y aceite. Sirve con la ensalada."],
+["Caballa al horno con tomate",25,"Caballa|1|ud|p;Tomates|2|ud|v;Cebolla|0.5|ud|v","Pon tomate y cebolla en rodajas en una fuente con aceite y orégano, y encima la caballa abierta. Hornea 15 minutos a 200 ºC."],
+["Bacalao al horno con cebolla y aceitunas",25,"Bacalao fresco|160|g|p;Cebolla|0.5|ud|v;Aceitunas|30|g|d","Pocha la cebolla 10 minutos. Ponla en una fuente con el bacalao encima y las aceitunas. Hornea 10 minutos a 200 ºC."],
+["Pez espada con calabacín a la plancha",15,"Pez espada|170|g|p;Calabacín|1|ud|v","Haz el calabacín en rodajas a la plancha con sal. Luego el pez espada 2 minutos por lado para que quede jugoso. Aliña con aceite, ajo y perejil."],
+["Mejillones al vapor con limón",15,"Mejillones|500|g|p;Limones|1|ud|v","Limpia los mejillones y ponlos en una olla tapada con un poco de agua y laurel a fuego fuerte hasta que se abran, unos 4 minutos. Sirve con limón y pan."],
+["Trucha a la plancha con almendras y judías",20,"Trucha|1|ud|p;Almendra laminada|15|g|d;Judías verdes|150|g|v","Cuece las judías 8 minutos. Haz la trucha abierta a la plancha y tuesta las almendras con ajo en la misma sartén para echarlas por encima."],
+["Calamares a la plancha con ensalada",15,"Calamar|180|g|p;Mezcla de ensalada|80|g|v;Limones|0.5|ud|v;Ajo (dientes)|1|ud|v","Corta el calamar en anillas o tiras y hazlo a fuego muy fuerte 2 minutos con ajo. Sirve con la ensalada y limón."]],
+hue:[
+["Tortilla francesa con ensalada de tomate",10,"Huevos|2|ud|l;Tomates|2|ud|v;Cebolla morada|0.25|ud|v","Bate los huevos con sal y cuájalos en una sartén caliente, doblando la tortilla. Acompaña con tomate y cebolla aliñados con aceite y orégano."],
+["Tortilla de patata individual",35,"Huevos|2|ud|l;Patatas|200|g|v;Cebolla|0.5|ud|v","Pocha la patata y la cebolla en láminas en aceite a fuego medio 20 minutos. Escúrrelas, mézclalas con el huevo batido y cuaja en una sartén pequeña por los dos lados."],
+["Huevos revueltos con champiñones",15,"Huevos|2|ud|l;Champiñones|150|g|v;Ajo (dientes)|1|ud|v","Saltea los champiñones laminados con ajo hasta que suelten el agua. Baja el fuego, añade los huevos y remueve hasta que estén cremosos. Con una tostada."],
+["Shakshuka",25,"Huevos|2|ud|l;Tomate triturado|200|g|d;Pimiento rojo|0.5|ud|v;Cebolla|0.5|ud|v","Sofríe cebolla y pimiento con comino y pimentón, añade el tomate y cuece 10 minutos. Haz dos huecos, casca los huevos, tapa y deja 5 minutos. Moja con pan."],
+["Revuelto de espárragos y gambas",15,"Huevos|2|ud|l;Espárragos trigueros|100|g|v;Gambas|80|g|p","Saltea los espárragos en trozos y las gambas peladas. Añade los huevos batidos y remueve a fuego suave hasta que cuajen."],
+["Tortilla de calabacín y cebolla",25,"Huevos|2|ud|l;Calabacín|1|ud|v;Cebolla|0.5|ud|v","Pocha el calabacín y la cebolla en dados 12 minutos. Mezcla con el huevo batido y cuaja la tortilla por ambos lados."],
+["Huevos a la plancha con pisto",35,"Huevos|2|ud|l;Calabacín|0.5|ud|v;Berenjena|0.5|ud|v;Pimiento rojo|0.5|ud|v;Tomate triturado|150|g|d;Cebolla|0.5|ud|v","Haz el pisto con las verduras en dados pochadas y el tomate, unos 25 minutos (sobra para otro día). Sirve con los huevos a la plancha."],
+["Frittata de espinacas y queso",25,"Huevos|2|ud|l;Espinacas frescas|100|g|v;Queso fresco|50|g|l","Saltea las espinacas, añade los huevos batidos y el queso en dados. Cuaja a fuego suave tapado o termina 5 minutos en el horno."],
+["Huevos rellenos de atún con ensalada",20,"Huevos|2|ud|l;Atún en lata|1|lata|d;Mezcla de ensalada|60|g|v;Tomates|1|ud|v","Cuece los huevos 10 minutos, pélalos y pártelos. Mezcla las yemas con el atún y un poco de tomate o yogur y rellena. Acompaña con la ensalada."],
+["Revuelto de setas y jamón",15,"Huevos|2|ud|l;Setas variadas|150|g|v;Jamón serrano|30|g|c","Saltea las setas con ajo a fuego fuerte, añade el jamón en tiras y los huevos. Remueve hasta que estén cuajados pero jugosos."]],
+ver:[
+["Crema de calabacín con huevo duro",30,"Calabacín|1.5|ud|v;Patatas|100|g|v;Cebolla|0.5|ud|v;Queso fresco|30|g|l;Huevos|1|ud|l","Pocha la cebolla, añade calabacín y patata en trozos y agua justa para cubrir; 15 minutos. Tritura con el queso. Sirve con huevo duro picado."],
+["Crema de calabaza y zanahoria",35,"Calabaza|300|g|v;Zanahorias|1|ud|v;Cebolla|0.5|ud|v;Pipas de calabaza|15|g|d","Pocha la cebolla, añade calabaza y zanahoria troceadas, agua para cubrir y un poco de comino; 20 minutos. Tritura y sirve con las pipas tostadas."],
+["Sopa de verduras con fideos",30,"Fideos finos|30|g|d;Zanahorias|1|ud|v;Puerros|1|ud|v;Caldo de pollo|500|ml|d;Huevos|1|ud|l","Rehoga el puerro y la zanahoria picados, añade el caldo y cuece 15 minutos. Echa los fideos 4 minutos y, al final, el huevo batido removiendo."],
+["Wok de verduras con tofu",20,"Tofu firme|150|g|l;Brócoli|100|g|v;Pimiento rojo|0.5|ud|v;Zanahorias|1|ud|v","Dora el tofu en dados bien seco hasta que esté crujiente y resérvalo. Saltea las verduras a fuego fuerte, vuelve a añadir el tofu y un chorrito de soja."],
+["Berenjena asada con tomate y mozzarella",35,"Berenjena|1|ud|v;Tomate triturado|100|g|d;Mozzarella|60|g|l","Parte la berenjena a lo largo, hazle cortes y hornéala 20 minutos a 200 ºC con aceite y sal. Cubre con tomate, orégano y mozzarella y gratina 8 minutos."],
+["Judías verdes con patata y jamón",25,"Judías verdes|200|g|v;Patatas|150|g|v;Jamón serrano|30|g|c;Ajo (dientes)|1|ud|v","Cuece las judías y la patata en trozos 15 minutos. Escurre y saltea con ajo y el jamón en taquitos."],
+["Crema de puerros",30,"Puerros|2|ud|v;Patatas|150|g|v;Cebolla|0.5|ud|v;Leche|100|ml|l","Pocha los puerros y la cebolla, añade la patata y agua para cubrir; 20 minutos. Tritura con la leche y sirve con picatostes de pan."]],
+ens:[
+["Ensalada César con pollo",20,"Pechuga de pollo|120|g|c;Lechuga romana|1|ud|v;Queso parmesano|15|g|l;Yogur natural|1|ud|l","Haz el pollo a la plancha y córtalo en tiras. Prepara una salsa con yogur, parmesano rallado, ajo, limón y una gota de mostaza. Mezcla con la lechuga y unos picatostes de pan."],
+["Ensalada de quinoa con aguacate",20,"Quinoa|60|g|d;Aguacates|1|ud|v;Tomates cherry|100|g|v;Pepino|0.5|ud|v;Limones|0.5|ud|v","Lava la quinoa y cuécela 12 minutos; enfría. Mezcla con aguacate, tomates y pepino. Aliña con limón, aceite y sal."],
+["Ensalada griega con atún",10,"Tomates|1|ud|v;Pepino|0.5|ud|v;Queso feta|50|g|l;Aceitunas|30|g|d;Atún en lata|1|lata|d;Cebolla morada|0.25|ud|v","Trocea tomate, pepino y cebolla. Añade el feta, las aceitunas y el atún. Aliña con aceite, orégano y un poco de vinagre."],
+["Ensalada de espinacas, nueces y queso de cabra",10,"Espinacas frescas|80|g|v;Queso de cabra|50|g|l;Nueces|20|g|d;Manzanas|1|ud|v","Mezcla las espinacas con la manzana en láminas, las nueces y el queso de cabra (puedes dorarlo un minuto en la sartén). Vinagreta de aceite, vinagre y miel."],
+["Ensalada caprese con jamón",10,"Tomates|2|ud|v;Mozzarella|100|g|l;Jamón serrano|30|g|c","Alterna rodajas de tomate y mozzarella, añade el jamón y aliña con aceite, sal, pimienta y orégano o albahaca."],
+["Poke de salmón",20,"Salmón (lomo)|120|g|p;Arroz|60|g|d;Aguacates|0.5|ud|v;Pepino|0.5|ud|v;Edamame|50|g|g","Cuece el arroz y deja que se temple. Corta en dados el salmón (congelado previamente si lo comes crudo, o hazlo a la plancha) y marínalo con soja. Monta el bol con arroz, salmón, aguacate, pepino y edamame."]],
+lib:[
+["Tostas de salmón ahumado y queso fresco",10,"Salmón ahumado|80|g|p;Queso fresco batido|60|g|l;Aguacates|0.5|ud|v;Pan integral (barra)|0.5|ud|b","Tuesta el pan, unta el queso, añade el aguacate en láminas y el salmón. Pimienta y unas gotas de limón."],
+["Pizza de pan de pita con verduras",20,"Pan de pita|1|ud|b;Tomate triturado|50|g|d;Mozzarella|50|g|l;Champiñones|60|g|v;Pimiento verde|0.5|ud|v","Cubre el pan de pita con tomate y orégano, añade las verduras laminadas y la mozzarella. Hornea 8 a 10 minutos a 220 ºC."],
+["Wrap de pollo y verduras",15,"Tortillas de trigo|2|ud|b;Pechuga de pollo|120|g|c;Mezcla de ensalada|40|g|v;Tomates|1|ud|v;Yogur natural|1|ud|l","Haz el pollo en tiras con especias. Calienta las tortillas, unta yogur con sal y limón y rellena con el pollo, la ensalada y el tomate."],
+["Bocadillo integral de pavo y aguacate",10,"Pan integral (barra)|0.5|ud|b;Pechuga de pavo en lonchas|80|g|c;Aguacates|0.5|ud|v;Tomates|1|ud|v","Unta el pan con aguacate machacado, añade el tomate en rodajas y el pavo. Acompaña con una pieza de fruta."],
+["Quesadilla de alubias y queso",15,"Tortillas de trigo|2|ud|b;Alubias rojas cocidas|120|g|d;Queso rallado|40|g|l;Pimiento rojo|0.5|ud|v","Machaca un poco las alubias con comino. Extiéndelas en una tortilla con el pimiento picado y el queso, tapa con la otra y dora en la sartén 2 minutos por lado."],
+["Hummus con crudités y pan de pita",15,"Garbanzos cocidos|200|g|d;Tahini|20|g|d;Limones|0.5|ud|v;Zanahorias|2|ud|v;Pepino|0.5|ud|v;Pan de pita|1|ud|b","Tritura los garbanzos con tahini, limón, ajo, aceite y agua hasta que esté cremoso. Sirve con zanahoria y pepino en bastones y el pan de pita tostado."]]
+}};
+const PXD="22 nov 2026";
+const PM="Garbanzos cocidos|0.8|400|0|Garbanzo cocido Hacendado, tarro 570 g;Espinacas frescas|1.3|300|0|Espinacas lavadas 300 g;Ajo (dientes)|1.85|40|0|Ajos morados, malla 250 g;Lentejas pardinas|1.85|1000|0|Lenteja pardina Hacendado 1 kg;Zanahorias|1.2|12|0|Zanahorias 1 kg;Pimiento verde|0.78|1|0|Pimiento verde, pieza;Cebolla|1.5|7|0|Cebollas, malla 1 kg;Patatas|1.9|1000|1|Patata a granel, 1,90 €/kg;Alubias blancas cocidas|0.75|400|0|Alubia blanca cocida, tarro 570 g;Almejas|1.9|450|0|Almeja congelada 450 g;Perejil fresco|0.95|1|0|Perejil troceado lavado 40 g;Atún en lata|2.7|3|0|Atún claro Hacendado, pack 3;Tomates|0.38|1|0|Tomate canario, pieza;Pepino|0.38|1|0|Pepino, pieza;Huevos|2.85|12|0|Huevos M, docena;Tomate triturado|0.55|400|0|Tomate triturado Hacendado 400 g;Arroz basmati|2.1|1000|0|Arroz basmati Hacendado 1 kg;Bacalao desalado|9.5|450|0|Bacalao al punto de sal 450 g;Chorizo|2.48|360|0|Chorizo oreado 360 g;Lacón o jamón en taco|4.76|560|0|Trozo de lacón 560 g;Tahini|2.95|200|0|Tahini Hacendado 200 g;Limones|2.2|8|0|Limones, malla 1 kg;Pechuga de pollo|4.38|630|0|Pechugas de pollo 630 g;Tomates cherry|2.2|500|0|Tomates cherry 500 g;Arroz|1.15|1000|0|Arroz redondo Hacendado 1 kg;Calabacín|0.77|1|0|Calabacín, pieza;Pimiento rojo|0.58|1|0|Pimiento rojo, pieza;Maíz dulce|1.55|3|0|Maíz dulce, pack 3 latas;Lentejas cocidas|0.9|400|0|Lenteja cocida, tarro 570 g;Queso feta|2.4|370|0|Feta en dados 370 g;Muslo de pollo deshuesado|2.93|500|0|Muslos deshuesados 500 g;Judías verdes|2|350|0|Judía verde plana 350 g;Caldo de pollo|0.75|1000|0|Caldo de pollo Hacendado 1 l;Gambas|4.9|360|0|Gamba pelada cruda congelada 360 g;Calamar|5.5|500|0|Calamar patagónico congelado 500 g;Caldo de pescado|0.95|1000|0|Caldo de pescado Hacendado 1 l;Alcachofas|2.55|4|0|Alcachofa troceada congelada 400 g;Champiñones|1.56|300|0|Champiñones 300 g;Caldo de verduras|1.8|1000|0|Caldo de verduras Gallina Blanca 1 l;Jamón cocido|1.95|250|0|Jamón cocido lonchas 250 g;Guisantes|1.05|300|0|Guisante muy tierno congelado 300 g;Queso parmesano|1.65|100|0|Grana padano rallado 100 g;Costilla de cerdo|4.88|610|0|Costillas a tacos 610 g;Morcilla|1.87|300|0|Morcilla de Burgos 300 g;Espaguetis|0.85|500|0|Spaghetti Hacendado 500 g;Carne picada de ternera|5.5|500|0|Picada de vacuno 500 g;Macarrones|0.85|500|0|Macarrón Hacendado 500 g;Pasta integral|1.2|500|0|Spaghetti integral 500 g;Pesto|1.95|190|0|Salsa pesto 190 g;Fideos gruesos|0.85|500|0|Fideo grueso 500 g;Fideos finos|0.85|500|0|Fideo mediano 500 g;Brócoli|2.7|1000|1|Brócoli a granel, 2,70 €/kg;Salmón (lomo)|10.95|1000|1|Salmón en rodajas, 10,95 €/kg;Merluza|11.5|1000|1|Merluza en rodajas, 11,50 €/kg;Dorada (ración)|4.75|1|0|Dorada limpia, pieza 500 g;Bacalao fresco|12.95|1000|1|Bacalao en rodajas, 12,95 €/kg;Yogur natural|1|6|0|Yogur natural Hacendado, pack 6;Muslos de pollo|3.78|4|0|Contramuslos sin piel 900 g;Pechuga de pavo|5.16|590|0|Filetes pechuga de pavo 590 g;Fideos de arroz|1.4|200|0|Noodles de arroz 200 g;Contramuslos de pollo|3.78|900|0|Contramuslos sin piel 900 g;Mezcla de ensalada|0.85|250|0|Ensalada 4 estaciones 250 g;Lomo de cerdo|4.03|640|0|Filetes de lomo 640 g;Carne picada de pavo|3.95|500|0|Picada de pollo 500 g (no hay de pavo);Ternera para guisar|8.75|540|0|Tacos de añojo para guisar 540 g;Pan de hamburguesa integral|0.85|4|0|Maxi pan de burger, 4 ud;Filete de ternera|10.01|550|0|Filetes de añojo 550 g;Pimientos de Padrón|2.5|1000|1|Pimiento verde de freír, 2,50 €/kg;Tiras de ternera|10.08|560|0|Filetes de añojo 560 g (cortar en tiras);Tortillas de trigo|1.15|8|0|Tortillas de trigo, 8 ud;Espárragos trigueros|4|250|0|Espárragos verdes, manojo 250 g;Lubina (ración)|4.78|1|0|Lubina limpia, pieza;Sepia|14.95|1000|1|Sepia limpia, 14,95 €/kg;Aceitunas|1.4|430|0|Aceitunas verdes 430 g;Pez espada|14.9|1000|1|Emperador congelado, 14,90 €/kg;Mejillones|3|1000|0|Mejillón vivo 1 kg;Trucha|4.54|1|0|Trucha, pieza 500 g;Almendra laminada|2.75|150|0|Almendra laminada 150 g;Setas variadas|2.09|250|0|Setas 250 g;Jamón serrano|3.85|220|0|Taco de jamón curado 220 g;Berenjena|0.81|1|0|Berenjena, pieza;Queso fresco|1.15|250|0|Queso de Burgos 250 g;Calabaza|2.24|560|0|Calabaza en trozos 560 g;Pipas de calabaza|2.2|200|0|Pipas de calabaza 200 g;Puerros|2.16|3|0|Puerros 450 g;Tofu firme|1.75|400|0|Tofu firme 400 g;Mozzarella|0.9|250|0|Mozzarella fresca 250 g;Leche|0.83|1000|0|Leche semidesnatada 1 l;Lechuga romana|1.85|2|0|Corazón de romana, 2 ud;Quinoa|2.65|500|0|Quinoa 500 g;Aguacates|1.42|1|0|Aguacate, pieza;Queso de cabra|2.65|200|0|Rulo de cabra 200 g;Nueces|3.7|600|0|Nuez natural 600 g;Manzanas|0.38|1|0|Manzana golden, pieza;Edamame|1.75|500|0|Edamame congelado 500 g;Salmón ahumado|3.7|100|0|Salmón ahumado 100 g;Queso fresco batido|1.1|500|0|Queso batido 0% 500 g;Pan integral (barra)|0.5|1|0|Barra de pan 250 g;Pan de pita|2|6|0|Pan de pita Mission, 6 ud;Pechuga de pavo en lonchas|3.95|400|0|Pechuga de pavo finas lonchas 400 g;Queso rallado|1.1|200|0|Queso rallado fundir 200 g;Plátanos|0.29|1|0|Banana, pieza;Mandarinas o naranjas|2.15|1000|1|Mandarina a granel, 2,15 €/kg;Kiwis|0.51|1|0|Kiwi, pieza;Copos de avena|1.3|800|0|Copos de avena Brüggen 800 g;Frutos secos naturales|1.75|300|0|Cocktail frutos secos 300 g";
+const PC="Garbanzos cocidos|0.8|250|0|Garbanzos cocidos Classic 400 g;Espinacas frescas|1.25|300|0|Espinaca troceada 300 g;Ajo (dientes)|0.89|20|0|Ajos, 2 cabezas;Lentejas pardinas|1.85|1000|0|Lenteja pardina Classic 1 kg;Zanahorias|1.19|12|0|Zanahoria 1 kg;Pimiento verde|0.48|1|0|Pimiento italiano a granel (≈200 g);Cebolla|1.45|7|0|Cebolla 1 kg;Cebolla morada|1.39|3|0|Cebolla roja 500 g;Patatas|3.29|3000|0|Patata 3 kg;Alubias blancas cocidas|1.25|470|0|Alubia blanca cocida 720 g;Almejas|2.55|600|0|Almejas crudas congeladas 600 g;Perejil fresco|0.55|1|0|Perejil, manojo;Atún en lata|3.75|3|0|Atún claro, pack 3 latas;Tomates|1|6|0|Tomate 1 kg;Pepino|1.15|4|0|Pepino, malla 1 kg;Huevos|1.39|12|0|Huevos M, 12 ud (precio web, puede ser oferta);Lentejas rojas|2.95|1000|0|Lenteja roja pelada 1 kg;Leche de coco|2.89|500|0|Leche de coco para cocinar 500 ml;Tomate triturado|0.42|400|0|Tomate triturado 400 g;Arroz basmati|0.97|500|0|Arroz basmati 500 g;Bacalao desalado|5.8|300|0|Solomillo de bacalao desalado 300 g;Chorizo|1.89|280|0|Chorizo sarta 280 g;Lacón o jamón en taco|4.35|500|0|Lacón cocido 500 g;Tahini|2.65|180|0|Crema tahini 180 g;Limones|3.15|12|0|Limón, malla 1,5 kg;Pechuga de pollo|5.2|1000|1|Pechuga entera, ≈5,20 €/kg;Tomates cherry|1|250|0|Tomate cherry pera 250 g;Arroz|0.75|1000|0|Arroz extra 1 kg;Calabacín|2.25|5|0|Calabacín 1,5 kg;Alubias rojas cocidas|1.2|250|0|Alubias rojas cocidas 400 g;Pimiento rojo|3.65|7|0|Pimiento rojo 1,5 kg;Maíz dulce|0.54|1|0|Maíz dulce, lata 285 g;Lentejas cocidas|0.79|250|0|Lenteja cocida 400 g;Queso feta|2.39|150|0|Feta en dados 150 g;Muslo de pollo deshuesado|1.66|400|0|Contramuslo sin piel ≈400 g;Judías verdes|2.89|250|0|Judía verde plana 250 g;Caldo de pollo|0.75|1000|0|Caldo de pollo Classic 1 l;Gambas|5.44|400|0|Gamba pelada cruda 400 g;Calamar|5.5|500|0|Calamar patagónico 500 g;Caldo de pescado|0.95|1000|0|Caldo de pescado Classic 1 l;Alcachofas|1.55|4|0|Corazones de alcachofa en conserva 240 g;Champiñones|1.5|230|0|Champiñón en conserva 390 g;Caldo de verduras|1.05|1000|0|Caldo de verduras Classic 1 l;Jamón cocido|1.66|225|0|Jamón cocido 225 g;Guisantes|1.05|300|0|Guisantes muy tiernos 300 g;Queso parmesano|1.33|85|0|Parmesano rallado 85 g;Costilla de cerdo|3.9|650|0|Costillas troceadas 650 g;Morcilla|2.5|400|0|Morcilla de cebolla 400 g;Espaguetis|0.8|500|0|Espaguetis Classic 500 g;Carne picada de ternera|4.05|500|0|Picada de vacuno 500 g;Macarrones|0.85|500|0|Macarrones 500 g;Pasta integral|1.2|500|0|Espagueti integral 500 g;Pesto|1.8|190|0|Salsa pesto 190 g;Fideos gruesos|0.85|500|0|Fideo grueso Classic 500 g;Fideos finos|0.85|500|0|Fideo Classic 500 g (aprox.);Brócoli|0.95|500|0|Brócoli 500 g;Salmón (lomo)|17.7|1000|1|Rodaja de salmón, ≈17,70 €/kg;Merluza|1.05|210|0|Filete de merluza sin piel 210 g;Dorada (ración)|5.7|1|0|Dorada de ración ≈600 g;Bacalao fresco|7.85|650|0|Lomos de bacalao 650 g;Caballa|3|1|0|Caballa ≈500 g;Yogur natural|1.29|8|0|Yogur natural, pack 8;Muslos de pollo|2.05|3|0|Contramuslos ≈500 g;Pechuga de pavo|4.32|650|0|Filete de pechuga de pavo ≈650 g;Fideos de arroz|3.15|250|0|Fideos de arroz 250 g;Contramuslos de pollo|1.66|400|0|Contramuslo sin piel ≈400 g;Mezcla de ensalada|1|300|0|Lechuga romana 300 g (no hay mezcla);Lomo de cerdo|2.99|400|0|Filete de lomo 400 g;Carne picada de pavo|3.39|500|0|Picada de pollo y pavo 500 g;Ternera para guisar|3.42|450|0|Estofado de vacuno ≈450 g;Pan de hamburguesa integral|0.85|4|0|Pan de burger maxi, 4 ud;Filete de ternera|3.98|400|0|Filete de ternera ≈400 g;Pimientos de Padrón|1|200|0|Pimiento de Padrón 200 g;Tiras de ternera|3.98|400|0|Filete de ternera ≈400 g (cortar en tiras);Tortillas de trigo|1.55|8|0|Tortillas de trigo 320 g;Espárragos trigueros|4.55|500|0|Espárrago verde 500 g;Lubina (ración)|3.99|1|0|Lubina de ración 300 g;Sepia|5.9|360|0|Sepia limpia 360 g;Aceitunas|1.47|500|0|Aceitunas verdes 500 g;Pez espada|6.95|700|0|Pez espada congelado 700 g;Mejillones|2.59|1000|0|Mejillón fresco 1 kg;Trucha|5.37|1|0|Trucha asalmonada ≈600 g;Almendra laminada|4.99|200|0|Almendra laminada 200 g;Setas variadas|1.84|450|0|Surtido de setas 450 g;Berenjena|2.55|4|0|Berenjena 1,5 kg;Queso fresco|1.87|250|0|Queso de Burgos 0%, 4 × 62,5 g;Calabaza|1.69|500|0|Calabaza cortada 500 g;Pipas de calabaza|1.49|200|0|Pipas de calabaza 200 g;Puerros|1.29|3|0|Puerro, manojo 400 g;Mozzarella|0.9|125|0|Mozzarella 125 g;Leche|0.81|1000|0|Leche semidesnatada 1 l;Lechuga romana|1.52|2|0|Corazón de romana, 2 ud;Quinoa|2.15|400|0|Quinoa blanca 400 g;Aguacates|5.25|2|0|Aguacate maduro, 2 ud;Queso de cabra|2|200|0|Rulo de cabra 200 g;Nueces|3.89|650|0|Nueces con cáscara 650 g;Manzanas|0.52|1|0|Manzana a granel (≈2,90 €/kg);Edamame|1.75|500|0|Edamame 500 g;Salmón ahumado|5.55|180|0|Salmón ahumado 180 g;Queso fresco batido|1.1|500|0|Queso batido desnatado 500 g;Pan integral (barra)|0.7|1|0|Barra de pan semiintegral;Pan de pita|1.39|6|0|Pan de pita 400 g;Pechuga de pavo en lonchas|1.99|270|0|Pechuga de pavo lonchas 270 g;Queso rallado|1.1|200|0|Queso rallado mix 200 g;Plátanos|0.5|1|0|Plátano de Canarias (≈3,15 €/kg);Kiwis|3.85|4|0|Kiwi Zespri, 4 ud;Copos de avena|0.84|500|0|Copos de avena integral 500 g;Frutos secos naturales|1.49|150|0|Selección de frutos secos 150 g";
+const pp=s=>Object.fromEntries(s.split(";").map(x=>{const[n,p,q,w,l]=x.split("|");return[n,[+p,+q,+w,l]]}));
+const PX0={m:pp(PM),c:pp(PC),l:{}};
+const SH=[["m","Mercadona"],["c","Carrefour"],["l","Lidl"]];
+const SHN=Object.fromEntries(SH);
+function pi(s){return s.split(";").map(x=>{const[n,q,u,c]=x.split("|");return{n,q:+q,u,c}})}
+const R={};
+for(const m in DB)for(const c in DB[m])DB[m][c].forEach((r,i)=>{R[m+c+i]={id:m+c+i,m,t:c,n:r[0],min:r[1],ing:pi(r[2]),s:r[3]}});
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const DAY=864e5;
+function nextMon(){const x=new Date();x.setHours(0,0,0,0);x.setDate(x.getDate()+(8-x.getDay())%7);return x.getTime()}
+const nz=s=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const FISH=["Atún en lata","Bacalao desalado","Caldo de pescado","Salmón (lomo)","Merluza","Dorada (ración)","Bacalao fresco","Caballa","Atún fresco","Lubina (ración)","Pez espada","Trucha","Salmón ahumado"];
+const MEAT=[...new Set(Object.values(R).flatMap(r=>r.ing.filter(g=>g.c==="c"||g.c==="p").map(g=>g.n)))].concat(["Caldo de pollo","Caldo de pescado"]);
+const RU={
+gluten:{l:"Gluten",i:["Espaguetis","Macarrones","Pasta integral","Fideos gruesos","Fideos finos","Pan de hamburguesa integral","Tortillas de trigo","Pan integral (barra)","Pan de pita","Copos de avena"],k:["pan rallado","harina","enharin","picatoste","tostada","con pan","y pan","soja"]},
+lact:{l:"Lactosa y lácteos",i:["Queso feta","Queso parmesano","Yogur natural","Queso fresco","Mozzarella","Leche","Queso de cabra","Queso fresco batido","Queso rallado"],k:["parmesano"]},
+huevo:{l:"Huevo",i:["Huevos"],k:[]},
+pescado:{l:"Pescado",i:FISH,k:[]},
+crust:{l:"Crustáceos",i:["Gambas","Caldo de pescado"],k:["gamba"]},
+molus:{l:"Moluscos",i:["Almejas","Calamar","Sepia","Mejillones"],k:[]},
+fsecos:{l:"Frutos secos",i:["Pesto","Almendra laminada","Nueces","Frutos secos naturales"],k:[]},
+soja:{l:"Soja",i:["Tofu firme","Edamame"],k:["soja"]},
+sesamo:{l:"Sésamo",i:["Tahini"],k:[]},
+mostaza:{l:"Mostaza",i:[],k:["mostaza"]},
+cerdo:{l:"Sin cerdo",i:["Chorizo","Lacón o jamón en taco","Jamón cocido","Costilla de cerdo","Morcilla","Lomo de cerdo","Jamón serrano"],k:[]},
+roja:{l:"Sin carne roja",i:["Carne picada de ternera","Ternera para guisar","Filete de ternera","Tiras de ternera"],k:[]},
+veg:{l:"Vegetariano",i:MEAT,k:[]},
+pic:{l:"Sin picante",i:[],k:["picante","guindilla","chile"]}};
+const AL=["gluten","lact","huevo","pescado","crust","molus","fsecos","soja","sesamo","mostaza"],DI=["veg","cerdo","roja","pic"];
+const ALLING=[...new Set(Object.values(R).flatMap(r=>r.ing.map(g=>g.n)).concat(pi(BASICS).map(g=>g.n)))].sort((a,b)=>a.localeCompare(b,"es"));
+const wordsOf=P=>(P.words||"").split(",").map(w=>nz(w.trim())).filter(w=>w.length>2);
+function ingBlocked(n,P){if(P.no.includes(n))return true;if(P.al.some(a=>RU[a].i.includes(n)))return true;const x=nz(n);return wordsOf(P).some(w=>x.includes(w))}
+function blocked(r,P){
+  if(r.ing.some(g=>ingBlocked(g.n,P)))return true;
+  const tx=nz(r.n+" "+r.s);
+  return P.al.some(a=>RU[a].k.some(k=>tx.includes(k)))||wordsOf(P).some(w=>tx.includes(w));
+}
+const ok=id=>!blocked(R[id],S.prefs);
+const liked=id=>R[id].ing.some(g=>S.prefs.si.includes(g.n));
+const FB={l:{pes:["leg","bla","arr","pas"],bla:["roj","leg","pes","arr"],roj:["bla","leg","pes","pas"],leg:["arr","pas","bla"],arr:["pas","leg","bla"],pas:["arr","leg","bla"]},d:{pes:["hue","ver","ens","lib"],hue:["ver","ens","lib","pes"],ver:["ens","lib","hue","pes"],ens:["ver","lib","hue","pes"],lib:["ens","ver","hue","pes"]}};
+const idsOf=(m,c)=>DB[m][c].map((_,i)=>m+c+i);
+function pool(m,c){
+  let p=idsOf(m,c).filter(ok);if(p.length)return p;
+  p=FB[m][c].flatMap(f=>idsOf(m,f).filter(ok));if(p.length)return p;
+  p=Object.keys(DB[m]).flatMap(x=>idsOf(m,x)).filter(ok);
+  return p.length?p:idsOf(m,c);
+}
+function gen(avoid){
+  const cnt={};
+  const pick=p=>{const best=shuf(p).map(id=>[id,(cnt[id]||0)*10+(avoid.has(id)?2:0)+(liked(id)?0:1)]).sort((a,b)=>a[1]-b[1])[0][0];cnt[best]=(cnt[best]||0)+1;return best};
+  const weeks=[];
+  for(let w=0;w<4;w++){
+    const lc=shuf(LT);let dc=shuf(DT);
+    for(let k=0;k<80&&lc.some((c,i)=>c===dc[i]);k++)dc=shuf(DT);
+    weeks.push({l:lc.map(c=>pick(pool("l",c))),d:dc.map(c=>pick(pool("d",c)))});
+  }
+  const rep=Object.values(cnt).reduce((s,n)=>s+n-1,0);
+  return{start:nextMon(),weeks,rep};
+}
+let S=null;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+const valid=p=>p&&p.weeks&&p.weeks.length===4&&p.weeks.every(w=>w.l.concat(w.d).every(id=>R[id]));
+if(!S||typeof S!=="object")S={};
+const P0=S.prefs||{};
+S.prefs={al:Array.isArray(P0.al)?P0.al.filter(a=>RU[a]):[],no:Array.isArray(P0.no)?P0.no:[],si:Array.isArray(P0.si)?P0.si:[],words:typeof P0.words==="string"?P0.words:""};
+if(!valid(S.plan)){S.plan=gen(new Set());S.prev=null;S.checks={}}
+if(S.prev&&!valid(S.prev))S.prev=null;
+S.checks=S.checks||{};
+S.px=S.px&&typeof S.px==="object"?S.px:{};
+if(!["m","c","l","best"].includes(S.mode))S.mode="best";
+if(!["m","c",""].includes(S.buy))S.buy=S.only===false?"":"m";delete S.only;
+const SHOP={m:{n:"Mercadona",web:"tienda.mercadona.es",min:50,ship:t=>8.2,note:"tarifa fija por pedido"},c:{n:"Carrefour",web:"carrefour.es",min:0,ship:t=>t>=120?0:7.99,note:"gratis desde 120 €"}};
+const eur=v=>v.toFixed(2).replace(".",",")+" €";
+function price(s,n){const o=S.px[s]&&n in S.px[s]?S.px[s][n]:PX0[s][n];return o&&o[0]>0&&o[1]>0?o:null}
+function cost(s,it){const r=price(s,it.n);if(!r)return null;const[p,q,w]=r;const k=it.q/q;return{buy:(w?k:Math.ceil(k-1e-9))*p,use:k*p,r,s}}
+function priced(w){return shop(w).map(x=>{const cs={};let best=null;for(const[s]of SH){cs[s]=cost(s,x);if(cs[s]&&(!best||cs[s].buy<best.buy))best=cs[s]}return{...x,cs,best,bs:best&&best.s}})}
+function totals(PL){
+  const T={};
+  for(const[s]of SH){const t={buy:0,use:0,n:0,miss:0};PL.forEach(x=>{const c=x.cs[s];if(c){t.buy+=c.buy;t.use+=c.use;t.n++}else t.miss++});T[s]=t}
+  const b={buy:0,use:0,miss:0,shops:[]};PL.forEach(x=>{if(x.best){b.buy+=x.best.buy;b.use+=x.best.use;if(!b.shops.includes(x.bs))b.shops.push(x.bs)}else b.miss++});
+  b.shops.sort((a,c)=>SH.findIndex(z=>z[0]===a)-SH.findIndex(z=>z[0]===c));T.best=b;return T;
+}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const used=()=>new Set(S.plan.weeks.flatMap(w=>w.l.concat(w.d)));
+const dateOf=(w,i)=>new Date(S.plan.start+(w*7+i)*DAY+3600e3*3);
+const fd=d=>d.getDate()+" "+MES[d.getMonth()];
+const today=new Date();today.setHours(0,0,0,0);
+let W=Math.min(3,Math.max(0,Math.floor((today-S.plan.start)/(7*DAY))));
+const FR={0.25:"¼",0.5:"½",0.75:"¾",1.5:"1½"};
+function fr(q,u){if(u==="g"||u==="ml")return q+" "+u;return(FR[q]||q)+" "+(u==="ud"?"ud":u)}
+function fq(q,u){
+  const k=v=>String(Math.round(v/100)/10).replace(".",",");
+  if(u==="g")return q>=1000?k(q)+" kg":(q<100?Math.round(q/5)*5:Math.round(q/10)*10)+" g";
+  if(u==="ml")return q>=1000?k(q)+" l":Math.round(q/10)*10+" ml";
+  const n=Math.ceil(q-1e-9);
+  return n+" "+(u==="ud"?"ud":n>1?(u==="lata"?"latas":"manojos"):u);
+}
+function shop(w){
+  const map=new Map(),wk=S.plan.weeks[w];
+  const add=g=>{const k=g.n+"|"+g.u;const o=map.get(k)||{k,n:g.n,u:g.u,c:g.c,q:0};o.q+=g.q;map.set(k,o)};
+  pi(BASICS).filter(g=>!ingBlocked(g.n,S.prefs)).forEach(add);
+  wk.l.concat(wk.d).forEach(id=>R[id].ing.forEach(add));
+  return[...map.values()];
+}
+function mealB(m,i,id){
+  const r=R[id];
+  return`<div class="slot"><span class="ml">${m==="l"?"Comida":"Cena"}</span><button class="meal" data-id="${id}" data-m="${m}" data-i="${i}"><span class="k"><i style="background:${T[r.t][1]}"></i>${T[r.t][0]} · ${r.min} min</span><b>${r.n}</b></button><button class="sw" data-m="${m}" data-i="${i}" title="Cambiar este plato" aria-label="Cambiar ${r.n}">↻</button></div>`;
+}
+function render(fresh){
+  const p=S.plan,wk=p.weeks[W];
+  const end=dateOf(3,6);
+  $("#note").innerHTML=today>end?`<span class="note">Este mes ya terminó: pulsa Mezclar menús para el siguiente.</span>`:"";
+  $("#sub").textContent=`Comida y cena para una persona del ${fd(dateOf(0,0))} al ${fd(end)}, sin repetir plato. Pulsa un plato para ver la receta; ↻ lo cambia por otro.`;
+  $("#tabs").innerHTML=[0,1,2,3].map(w=>`<button class="tab${w===W?" on":""}" data-w="${w}"><b>Semana ${w+1}</b><span>${fd(dateOf(w,0))} – ${fd(dateOf(w,6))}</span></button>`).join("");
+  $("#wt").textContent=`Semana ${W+1}`;
+  const all=wk.l.concat(wk.d).map(id=>R[id].t),cnt={};all.forEach(t=>cnt[t]=(cnt[t]||0)+1);
+  $("#sum").innerHTML=Object.keys(T).filter(t=>cnt[t]).map(t=>`<span class="chip"><i style="background:${T[t][1]}"></i>${T[t][0]} ×${cnt[t]}</span>`).join("");
+  const P=S.prefs,fl=[];
+  if(P.al.length)fl.push("<b>Sin:</b> "+P.al.map(a=>RU[a].l.replace(/^Sin /,"")).join(", "));
+  if(P.no.length)fl.push("<b>No me gusta:</b> "+P.no.join(", "));
+  if(P.si.length)fl.push("<b>Me gusta:</b> "+P.si.join(", "));
+  if(wordsOf(P).length)fl.push("<b>Evitar:</b> "+P.words.replace(/[<>&"]/g,""));
+  if(p.rep)fl.push(`<span class="warn">Con tus preferencias hay ${p.rep} repeticiones este mes</span>`);
+  $("#filt").innerHTML=fl.length?fl.join(" · "):"Sin preferencias: pulsa Mis preferencias para indicar alergias o lo que no te gusta.";
+  const b=$("#board");
+  b.innerHTML=`<div class="day head"><span></span><span>Comida</span><span>Cena</span></div>`+DAYS.map((d,i)=>`<div class="day" style="animation-delay:${i*40}ms"><div class="dn">${d}<small>${fd(dateOf(W,i))}</small></div>${mealB("l",i,wk.l[i])}${mealB("d",i,wk.d[i])}</div>`).join("");
+  b.classList.remove("fresh");if(fresh){void b.offsetWidth;b.classList.add("fresh")}
+  $("#st").textContent=`Lista de la compra · semana ${W+1}`;
+  const ch=S.checks[W]||{},PL=priced(W),TT=totals(PL),md=S.buy||S.mode;
+  document.querySelectorAll(".sb").forEach(b=>b.setAttribute("aria-pressed",b.dataset.b===S.buy));$("#order").hidden=!S.buy;
+  if(S.buy){const B=SHOP[S.buy],t=TT[S.buy],sh=B.ship(t.buy),tot=t.buy+sh,ok=t.buy>=B.min;$("#tots").innerHTML=`<div class="tot on"><span>${B.n} · productos</span><b>${eur(t.buy)}</b><small>${t.miss?(t.miss>1?`faltan ${t.miss} precios`:"falta 1 precio"):"todo con precio"}</small></div><div class="tot"><span>Envío a domicilio</span><b>${sh?eur(sh):"Gratis"}</b><small>${B.note}</small></div><div class="tot best"><span>Total del pedido</span><b>${eur(tot)}</b><small>${!B.min?"sin pedido mínimo":ok?"supera el mínimo de "+B.min+" €":`<span class="warn">no llega al mínimo de ${B.min} €</span>`}</small></div>`}
+  else $("#tots").innerHTML=SH.map(([s,n])=>{const t=TT[s];return`<button class="tot${md===s?" on":""}" data-s="${s}" role="tab" aria-selected="${md===s}"><span>${n}</span><b>${t.n?eur(t.buy):"—"}</b><small>${t.miss?(t.n?(t.miss>1?`faltan ${t.miss} precios`:"falta 1 precio"):"sin precios: añádelos"):"todo con precio"}</small></button>`}).join("")+`<button class="tot best${md==="best"?" on":""}" data-s="best" role="tab" aria-selected="${md==="best"}"><span>Lo más barato</span><b>${eur(TT.best.buy)}</b><small>${TT.best.shops.map(s=>SHN[s]).join(" + ")||"—"}${TT.best.miss?` · ${TT.best.miss} sin precio`:""}</small></button>`;
+  const cur=md==="best"?TT.best:TT[md];
+  $("#fine").innerHTML=`Pagas <b>${eur(cur.buy)}</b> comprando paquetes enteros; lo que consumes esta semana vale unos <b>${eur(cur.use)}</b> (el resto queda en la despensa). Precios de las tiendas online del ${PXD}: Mercadona para el código postal 47001, Carrefour con su precio online. Lidl no publica su surtido con precios en la web: toca un precio para añadir los suyos o corregir cualquiera. <button class="lnk" id="pxreset">Restaurar precios</button>`;
+  if(S.buy)$("#fine").innerHTML=`Pagas <b>${eur(cur.buy)}</b> en productos comprando paquetes enteros; lo que consumes esta semana vale unos <b>${eur(cur.use)}</b>. Precios de ${SHOP[S.buy].web}${S.buy==="m"?" para el código postal 47001":""} del ${PXD}; el envío es orientativo y la web confirma el importe; los productos sin precio no están en su web (toca “añadir” para poner uno o cámbialos en tus preferencias). <button class="lnk" id="pxreset">Restaurar precios</button>`;
+  const li=x=>{const c=md==="best"?x.best:x.cs[md];const r=c?c.r:null;return`<li><label class="${ch[x.k]?"done":""}"><input type="checkbox" data-k="${x.k}"${ch[x.k]?" checked":""}><span class="nm">${x.n}<small>${fq(x.q,x.u)}${r?" · "+r[3]:""}</small></span></label><button class="pe${c?"":" none"}" data-n="${x.n}" aria-label="Editar precio de ${x.n}">${c?eur(c.buy):"añadir"}</button></li>`};
+  const grp=(h,g)=>g.length?`<div class="grp"><h3>${h}</h3><ul>${g.sort((a,b)=>a.n.localeCompare(b.n,"es")).map(li).join("")}</ul></div>`:"";
+  const sum=g=>eur(g.reduce((s,x)=>s+(md==="best"?x.best:x.cs[md]).buy,0));
+  let html;
+  if(md==="best"){
+    html=SH.map(([s,n])=>{const g=PL.filter(x=>x.best&&x.bs===s);return g.length?grp(`${n} · ${sum(g)}`,g):""}).join("")+grp("Sin precio en ningún súper",PL.filter(x=>!x.best));
+  }else html=CATS.map(([c,l])=>grp(l,PL.filter(x=>x.c===c))).join("");
+  $("#shop").innerHTML=html+`<div class="grp"><h3>Revisa la despensa</h3><div class="pantry">${PANTRY.map(x=>`<span class="chip">${x}</span>`).join("")}</div></div>`;
+  $("#undo").disabled=!S.prev;
+}
+const dlg=$("#dlg");
+function openR(id,m,i){
+  const r=R[id];
+  dlg.innerHTML=`<div class="dh"><span class="k"><i style="background:${T[r.t][1]}"></i>${T[r.t][0]} · ${m==="l"?"Comida":"Cena"} · ${r.min} min · 1 ración</span><h3>${r.n}</h3></div><div class="db"><div><h4>Ingredientes</h4><ul>${r.ing.map(g=>`<li><span>${g.n}</span><span class="q">${fr(g.q,g.u)}</span></li>`).join("")}<li class="pt">Más aceite, sal y especias de la despensa</li></ul></div><div><h4>Preparación</h4><p>${r.s}</p></div></div><div class="df"><button class="sec" id="dsw" data-m="${m}" data-i="${i}">Cambiar por otro plato</button><button class="pri" id="dclose">Cerrar</button></div>`;
+  if(!dlg.open){try{dlg.showModal()}catch(e){dlg.setAttribute("open","")}}
+}
+function swap(m,i){
+  const wk=S.plan.weeks[W],id=wk[m][i],u=used();
+  const ids=pool(m,R[id].t);
+  let cand=ids.filter(x=>!u.has(x));if(!cand.length)cand=ids.filter(x=>x!==id);
+  if(!cand.length){toast("No hay otra opción con tus preferencias");return id}
+  wk[m][i]=cand[Math.random()*cand.length|0];save();render();toast("Plato cambiado");return wk[m][i];
+}
+const xdlg=$("#xdlg");
+function openX(n){
+  const it=priced(W).find(x=>x.n===n);if(!it)return;
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+  const un={g:"g",ml:"ml",ud:"ud",lata:"latas",manojo:"manojos"}[it.u]||it.u;
+  xdlg.dataset.n=n;
+  xdlg.innerHTML=`<div class="dh"><span class="k" style="margin-top:0">Esta semana necesitas ${fq(it.q,it.u)}</span><h3>${n}</h3></div><div class="pb">
+  <p class="hint">Precio del paquete y cuánto trae (en ${un}). Si se vende al peso, marca la casilla y se cobra solo lo que necesitas; si no, se compran paquetes enteros. Deja el precio vacío si ese súper no lo tiene.</p>
+  ${SH.map(([s,sn])=>{const r=price(s,n)||[0,0,0,""];return`<fieldset class="xr"><legend>${sn}${it.cs[s]?` · ${eur(it.cs[s].buy)}`:""}</legend>
+  <label>Precio (€)<input data-x="${s}p" inputmode="decimal" value="${r[0]?String(r[0]).replace(".",","):""}"></label>
+  <label>Trae (${un})<input data-x="${s}q" inputmode="decimal" value="${r[1]||""}"></label>
+  <label class="cb"><input type="checkbox" data-x="${s}w"${r[2]?" checked":""}> Al peso</label>
+  <label class="wide">Producto<input data-x="${s}l" value="${esc(r[3])}"></label></fieldset>`}).join("")}</div>
+  <div class="df"><button class="sec" id="xreset">Restaurar original</button><button class="sec" id="xclose">Cancelar</button><button class="pri" id="xsave">Guardar</button></div>`;
+  try{xdlg.showModal()}catch(e){xdlg.setAttribute("open","")}
+}
+xdlg.addEventListener("click",e=>{if(e.target===xdlg)xdlg.close()});
+const pdlg=$("#pdlg");let D=null;
+const TOTAL=Object.keys(R).length;
+function chipI(n){const st=D.no.includes(n)?"no":D.si.includes(n)?"si":"";return`<button class="pg ${st}" data-n="${n}" aria-label="${n}${st==="no"?", no me gusta":st==="si"?", me gusta":""}">${st==="no"?"✕ ":st==="si"?"✓ ":""}${n}</button>`}
+function drawI(){const q=nz(($("#pq")||{}).value||"");$("#pi").innerHTML=ALLING.filter(n=>!q||nz(n).includes(q)).map(chipI).join("")||`<span class="hint">Ningún ingrediente coincide.</span>`}
+function countP(){const n=Object.keys(R).filter(id=>!blocked(R[id],D)).length;$("#pn").innerHTML=`Platos disponibles: <b>${n}</b> de ${TOTAL}`+(n<45?` · <span class="warn">algunos se repetirán en el mes</span>`:"")}
+function openP(){
+  D=JSON.parse(JSON.stringify(S.prefs));
+  const tg=k=>`<button class="pt${D.al.includes(k)?" on":""}" data-a="${k}" aria-pressed="${D.al.includes(k)}">${RU[k].l}</button>`;
+  pdlg.innerHTML=`<div class="dh"><h3>Mis preferencias</h3><span class="k" style="margin-top:6px">Los platos con lo que marques no saldrán en el menú ni en la lista de la compra.</span></div>
+  <div class="pb"><h4>Alergias e intolerancias</h4><div class="pc">${AL.map(tg).join("")}</div>
+  <h4>Dieta</h4><div class="pc">${DI.map(tg).join("")}</div>
+  <h4>Ingredientes</h4><p class="hint">Un toque: no me gusta (se excluye). Dos toques: me gusta (saldrá más a menudo). Tres: neutral.</p>
+  <input id="pq" type="search" placeholder="Buscar ingrediente" autocomplete="off"><div class="pc" id="pi"></div>
+  <h4>Otras palabras a evitar</h4><p class="hint">Separadas por comas; se buscan en el nombre, los ingredientes y la preparación.</p>
+  <input id="pw" type="text" placeholder="Por ejemplo: picante, setas, aguacate" value="${D.words.replace(/"/g,"&quot;")}">
+  <p class="hint">Con alergias reales, revisa siempre las etiquetas: caldos, embutidos, salsas y especias pueden llevar trazas.</p></div>
+  <div class="df"><span class="pn" id="pn"></span><button class="sec" id="pcancel">Cancelar</button><button class="pri" id="psave">Guardar y rehacer menú</button></div>`;
+  drawI();countP();
+  try{pdlg.showModal()}catch(e){pdlg.setAttribute("open","")}
+}
+pdlg.addEventListener("click",e=>{if(e.target===pdlg)pdlg.close()});
+pdlg.addEventListener("input",e=>{if(e.target.id==="pq")drawI();if(e.target.id==="pw"){D.words=e.target.value;countP()}});
+let tt;const toast=t=>{const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("on"),1800)};
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.classList.contains("tab")){W=+t.dataset.w;render();return}
+  if(t.classList.contains("meal")){openR(t.dataset.id,t.dataset.m,+t.dataset.i);return}
+  if(t.classList.contains("sw")){swap(t.dataset.m,+t.dataset.i);return}
+  if(t.id==="prefs"){openP();return}
+  if(t.classList.contains("pt")){const a=t.dataset.a;D.al=D.al.includes(a)?D.al.filter(x=>x!==a):D.al.concat(a);t.classList.toggle("on");t.setAttribute("aria-pressed",t.classList.contains("on"));countP();return}
+  if(t.classList.contains("pg")){const n=t.dataset.n;const st=D.no.includes(n)?"no":D.si.includes(n)?"si":"";D.no=D.no.filter(x=>x!==n);D.si=D.si.filter(x=>x!==n);const nx=st===""?"no":st==="no"?"si":"";if(nx)D[nx].push(n);t.outerHTML=chipI(n);countP();return}
+  if(t.id==="pcancel"){pdlg.close();return}
+  if(t.id==="psave"){S.prefs=D;S.prev=S.plan;S.plan=gen(used());S.checks={};W=0;save();pdlg.close();render(true);toast("Preferencias guardadas y menú rehecho");return}
+  if(t.id==="dsw"){const m=t.dataset.m,i=+t.dataset.i;openR(swap(m,i),m,i);return}
+  if(t.id==="dclose"){dlg.close();return}
+  if(t.id==="mix"){S.prev=S.plan;S.plan=gen(used());S.checks={};W=0;save();render(true);toast("Nuevo mes generado, priorizando platos que no salieron");return}
+  if(t.id==="undo"&&S.prev){[S.plan,S.prev]=[S.prev,S.plan];S.checks={};W=0;save();render(true);toast("Menú anterior recuperado");return}
+  if(t.id==="clear"){S.checks[W]={};save();render();return}
+  if(t.classList.contains("tot")){S.mode=t.dataset.s;save();render();return}
+  if(t.classList.contains("pe")){openX(t.dataset.n);return}
+  if(t.id==="xclose"){xdlg.close();return}
+  if(t.id==="xreset"){for(const[s]of SH)if(S.px[s])delete S.px[s][xdlg.dataset.n];save();xdlg.close();render();toast("Precio original restaurado");return}
+  if(t.id==="xsave"){
+    const n=xdlg.dataset.n;
+    for(const[s]of SH){const g=k=>xdlg.querySelector(`[data-x="${s}${k}"]`);const p=parseFloat(String(g("p").value).replace(",","."));const q=parseFloat(String(g("q").value).replace(",","."));
+      S.px[s]=S.px[s]||{};S.px[s][n]=p>0&&q>0?[p,q,g("w").checked?1:0,g("l").value.trim()||"Precio introducido por ti"]:[0,1,0,""]}
+    save();xdlg.close();render();toast("Precios guardados");return}
+  if(t.classList.contains("sb")){S.buy=t.dataset.b;save();render();return}
+  if(t.id==="order"){
+    const PL=priced(W),TT=totals(PL);
+    const b=S.buy||"m",B=SHOP[b],sh=B.ship(TT[b].buy);const ln=x=>{const c=x.cs[b];if(!c)return`- ${x.n}: ${fq(x.q,x.u)} · SIN PRODUCTO EN ${B.n.toUpperCase()}`;const[p,q,w,l]=c.r;return w?`- ${l}: ${fq(x.q,x.u)} al peso (≈${eur(c.buy)})`:`- ${Math.ceil(x.q/q-1e-9)} × ${l} (${eur(p)} c/u = ${eur(c.buy)})`};
+    const txt=`Pedido ${B.n} · semana ${W+1} (${fd(dateOf(W,0))} – ${fd(dateOf(W,6))})\nProductos: ${eur(TT[b].buy)} + envío ${eur(sh)} = ${eur(TT[b].buy+sh)}\n\n`+PL.slice().sort((a,b)=>a.n.localeCompare(b.n,"es")).map(ln).join("\n");
+    navigator.clipboard.writeText(txt).then(()=>toast("Pedido copiado"),()=>toast("No se pudo copiar"));return}
+  if(t.id==="pxreset"){S.px={};save();render();toast("Precios originales restaurados");return}
+  if(t.id==="copy"){
+    const PL=priced(W),md=S.buy||S.mode,TT=totals(PL),C=x=>md==="best"?x.best:x.cs[md];
+    const ln=x=>{const c=C(x);return`- ${x.n}: ${fq(x.q,x.u)}${c?` · ${eur(c.buy)} (${c.r[3]})`:""}`};
+    const blk=(h,g)=>g.length?`\n${h}\n`+g.sort((a,b)=>a.n.localeCompare(b.n,"es")).map(ln).join("\n"):"";
+    const body=md==="best"?SH.map(([s,n])=>blk(n,PL.filter(x=>x.best&&x.bs===s))).join("\n")+blk("Sin precio",PL.filter(x=>!x.best)):CATS.map(([c,l])=>blk(l,PL.filter(x=>x.c===c))).join("\n");
+    const txt=`Lista de la compra · semana ${W+1} (${fd(dateOf(W,0))} – ${fd(dateOf(W,6))}) · ${md==="best"?"lo más barato":SHN[md]} · total ${eur((md==="best"?TT.best:TT[md]).buy)}\n`+body;
+    navigator.clipboard.writeText(txt).then(()=>toast("Lista copiada"),()=>toast("No se pudo copiar"));
+  }
+});
+dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close()});
+document.addEventListener("change",e=>{
+  const c=e.target;if(!c.dataset||!c.dataset.k)return;
+  (S.checks[W]=S.checks[W]||{})[c.dataset.k]=c.checked;c.closest("label").classList.toggle("done",c.checked);save();
+});
+save();render();
+let dp=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e;$("#inst").classList.add("show")});
+window.addEventListener("appinstalled",()=>{$("#inst").classList.remove("show");toast("App instalada")});
+$("#inst").addEventListener("click",async()=>{if(!dp)return;dp.prompt();try{await dp.userChoice}catch(e){}dp=null;$("#inst").classList.remove("show")});
+if("serviceWorker" in navigator&&location.protocol==="https:")window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
