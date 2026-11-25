@@ -125,6 +125,7 @@ dialog::backdrop{background:rgba(10,20,14,.55)}
 .xr .cb{display:flex;gap:6px;align-items:center;min-height:44px;margin-bottom:10px;color:var(--ink);font-size:15px}
 .xr .cb input{width:20px;height:20px;min-height:0;margin:0;accent-color:var(--tom)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg{flex-wrap:wrap}
 .sb{min-height:46px;padding:0 14px;border:0;background:var(--bg);font-weight:600}
 .sb+.sb{border-left:1px solid var(--line)}
 .sb[aria-pressed=true]{background:var(--ink);color:var(--bg)}
@@ -164,7 +165,7 @@ dialog::backdrop{background:rgba(10,20,14,.55)}
     <div class="wrap">
       <div class="shead">
         <div><h2 id="st">Lista de la compra</h2><p>Cantidades para los platos de esta semana más desayunos y fruta. Lo de despensa dura más: compra solo si se acaba.</p></div>
-        <div class="act"><button class="sec" id="clear">Desmarcar</button><span class="seg" role="group" aria-label="Comprar en"><button class="sb" data-b="m">Mercadona</button><button class="sb" data-b="c">Carrefour</button><button class="sb" data-b="">Comparar</button></span><button class="sec" id="order">Copiar pedido</button><button class="pri" id="copy">Copiar lista</button></div>
+        <div class="act"><button class="sec" id="clear">Desmarcar</button><span class="seg" role="group" aria-label="Comprar en"><button class="sb" data-b="m">Mercadona</button><button class="sb" data-b="c">Carrefour</button><button class="sb" data-b="d">Carrefour Drive</button><button class="sb" data-b="">Comparar</button></span><button class="sec" id="order">Copiar pedido</button><button class="pri" id="copy">Copiar lista</button></div>
       </div>
       <div class="tots" id="tots" role="tablist" aria-label="Supermercado"></div>
       <p class="fine" id="fine"></p>
@@ -354,8 +355,9 @@ if(S.prev&&!valid(S.prev))S.prev=null;
 S.checks=S.checks||{};
 S.px=S.px&&typeof S.px==="object"?S.px:{};
 if(!["m","c","l","best"].includes(S.mode))S.mode="best";
-if(!["m","c",""].includes(S.buy))S.buy=S.only===false?"":"m";delete S.only;
-const SHOP={m:{n:"Mercadona",web:"tienda.mercadona.es",min:50,ship:t=>8.2,note:"tarifa fija por pedido"},c:{n:"Carrefour",web:"carrefour.es",min:0,ship:t=>t>=120?0:7.99,note:"gratis desde 120 €"}};
+if(!["m","c","d",""].includes(S.buy))S.buy=S.only===false?"":"m";delete S.only;
+const SHOP={m:{n:"Mercadona",web:"tienda.mercadona.es",min:50,ship:t=>8.2,note:"tarifa fija por pedido"},c:{n:"Carrefour",web:"carrefour.es",min:0,ship:t=>t>=120?0:7.99,note:"gratis desde 120 €"},d:{n:"Carrefour Drive",src:"c",web:"carrefour.es",min:30,ship:t=>0,note:"recogida en tienda, sin coste",lab:"Recogida Drive"}};
+const SRC=b=>SHOP[b]&&SHOP[b].src||b;
 const eur=v=>v.toFixed(2).replace(".",",")+" €";
 function price(s,n){const o=S.px[s]&&n in S.px[s]?S.px[s][n]:PX0[s][n];return o&&o[0]>0&&o[1]>0?o:null}
 function cost(s,it){const r=price(s,it.n);if(!r)return null;const[p,q,w]=r;const k=it.q/q;return{buy:(w?k:Math.ceil(k-1e-9))*p,use:k*p,r,s}}
@@ -412,13 +414,13 @@ function render(fresh){
   b.innerHTML=`<div class="day head"><span></span><span>Comida</span><span>Cena</span></div>`+DAYS.map((d,i)=>`<div class="day" style="animation-delay:${i*40}ms"><div class="dn">${d}<small>${fd(dateOf(W,i))}</small></div>${mealB("l",i,wk.l[i])}${mealB("d",i,wk.d[i])}</div>`).join("");
   b.classList.remove("fresh");if(fresh){void b.offsetWidth;b.classList.add("fresh")}
   $("#st").textContent=`Lista de la compra · semana ${W+1}`;
-  const ch=S.checks[W]||{},PL=priced(W),TT=totals(PL),md=S.buy||S.mode;
+  const ch=S.checks[W]||{},PL=priced(W),TT=totals(PL),md=S.buy?SRC(S.buy):S.mode;
   document.querySelectorAll(".sb").forEach(b=>b.setAttribute("aria-pressed",b.dataset.b===S.buy));$("#order").hidden=!S.buy;
-  if(S.buy){const B=SHOP[S.buy],t=TT[S.buy],sh=B.ship(t.buy),tot=t.buy+sh,ok=t.buy>=B.min;$("#tots").innerHTML=`<div class="tot on"><span>${B.n} · productos</span><b>${eur(t.buy)}</b><small>${t.miss?(t.miss>1?`faltan ${t.miss} precios`:"falta 1 precio"):"todo con precio"}</small></div><div class="tot"><span>Envío a domicilio</span><b>${sh?eur(sh):"Gratis"}</b><small>${B.note}</small></div><div class="tot best"><span>Total del pedido</span><b>${eur(tot)}</b><small>${!B.min?"sin pedido mínimo":ok?"supera el mínimo de "+B.min+" €":`<span class="warn">no llega al mínimo de ${B.min} €</span>`}</small></div>`}
+  if(S.buy){const B=SHOP[S.buy],t=TT[SRC(S.buy)],sh=B.ship(t.buy),tot=t.buy+sh,ok=t.buy>=B.min;$("#tots").innerHTML=`<div class="tot on"><span>${B.n} · productos</span><b>${eur(t.buy)}</b><small>${t.miss?(t.miss>1?`faltan ${t.miss} precios`:"falta 1 precio"):"todo con precio"}</small></div><div class="tot"><span>${B.lab||"Envío a domicilio"}</span><b>${sh?eur(sh):"Gratis"}</b><small>${B.note}</small></div><div class="tot best"><span>Total del pedido</span><b>${eur(tot)}</b><small>${!B.min?"sin pedido mínimo":ok?"supera el mínimo de "+B.min+" €":`<span class="warn">no llega al mínimo de ${B.min} €</span>`}</small></div>`}
   else $("#tots").innerHTML=SH.map(([s,n])=>{const t=TT[s];return`<button class="tot${md===s?" on":""}" data-s="${s}" role="tab" aria-selected="${md===s}"><span>${n}</span><b>${t.n?eur(t.buy):"—"}</b><small>${t.miss?(t.n?(t.miss>1?`faltan ${t.miss} precios`:"falta 1 precio"):"sin precios: añádelos"):"todo con precio"}</small></button>`}).join("")+`<button class="tot best${md==="best"?" on":""}" data-s="best" role="tab" aria-selected="${md==="best"}"><span>Lo más barato</span><b>${eur(TT.best.buy)}</b><small>${TT.best.shops.map(s=>SHN[s]).join(" + ")||"—"}${TT.best.miss?` · ${TT.best.miss} sin precio`:""}</small></button>`;
   const cur=md==="best"?TT.best:TT[md];
   $("#fine").innerHTML=`Pagas <b>${eur(cur.buy)}</b> comprando paquetes enteros; lo que consumes esta semana vale unos <b>${eur(cur.use)}</b> (el resto queda en la despensa). Precios de las tiendas online del ${PXD}: Mercadona para el código postal 47001, Carrefour con su precio online. Lidl no publica su surtido con precios en la web: toca un precio para añadir los suyos o corregir cualquiera. <button class="lnk" id="pxreset">Restaurar precios</button>`;
-  if(S.buy)$("#fine").innerHTML=`Pagas <b>${eur(cur.buy)}</b> en productos comprando paquetes enteros; lo que consumes esta semana vale unos <b>${eur(cur.use)}</b>. Precios de ${SHOP[S.buy].web}${S.buy==="m"?" para el código postal 47001":""} del ${PXD}; el envío es orientativo y la web confirma el importe; los productos sin precio no están en su web (toca “añadir” para poner uno o cámbialos en tus preferencias). <button class="lnk" id="pxreset">Restaurar precios</button>`;
+  if(S.buy)$("#fine").innerHTML=`Pagas <b>${eur(cur.buy)}</b> en productos comprando paquetes enteros; lo que consumes esta semana vale unos <b>${eur(cur.use)}</b>. Precios de ${SHOP[S.buy].web}${S.buy==="d"?" (la recogida Drive no cobra envío; elige tu tienda Drive en su web)":""}${S.buy==="m"?" para el código postal 47001":""} del ${PXD}; el envío es orientativo y la web confirma el importe; los productos sin precio no están en su web (toca “añadir” para poner uno o cámbialos en tus preferencias). <button class="lnk" id="pxreset">Restaurar precios</button>`;
   const li=x=>{const c=md==="best"?x.best:x.cs[md];const r=c?c.r:null;return`<li><label class="${ch[x.k]?"done":""}"><input type="checkbox" data-k="${x.k}"${ch[x.k]?" checked":""}><span class="nm">${x.n}<small>${fq(x.q,x.u)}${r?" · "+r[3]:""}</small></span></label><button class="pe${c?"":" none"}" data-n="${x.n}" aria-label="Editar precio de ${x.n}">${c?eur(c.buy):"añadir"}</button></li>`};
   const grp=(h,g)=>g.length?`<div class="grp"><h3>${h}</h3><ul>${g.sort((a,b)=>a.n.localeCompare(b.n,"es")).map(li).join("")}</ul></div>`:"";
   const sum=g=>eur(g.reduce((s,x)=>s+(md==="best"?x.best:x.cs[md]).buy,0));
@@ -509,12 +511,12 @@ document.addEventListener("click",e=>{
   if(t.classList.contains("sb")){S.buy=t.dataset.b;save();render();return}
   if(t.id==="order"){
     const PL=priced(W),TT=totals(PL);
-    const b=S.buy||"m",B=SHOP[b],sh=B.ship(TT[b].buy);const ln=x=>{const c=x.cs[b];if(!c)return`- ${x.n}: ${fq(x.q,x.u)} · SIN PRODUCTO EN ${B.n.toUpperCase()}`;const[p,q,w,l]=c.r;return w?`- ${l}: ${fq(x.q,x.u)} al peso (≈${eur(c.buy)})`:`- ${Math.ceil(x.q/q-1e-9)} × ${l} (${eur(p)} c/u = ${eur(c.buy)})`};
-    const txt=`Pedido ${B.n} · semana ${W+1} (${fd(dateOf(W,0))} – ${fd(dateOf(W,6))})\nProductos: ${eur(TT[b].buy)} + envío ${eur(sh)} = ${eur(TT[b].buy+sh)}\n\n`+PL.slice().sort((a,b)=>a.n.localeCompare(b.n,"es")).map(ln).join("\n");
+    const bb=S.buy||"m",b=SRC(bb),B=SHOP[bb],sh=B.ship(TT[b].buy);const ln=x=>{const c=x.cs[b];if(!c)return`- ${x.n}: ${fq(x.q,x.u)} · SIN PRODUCTO EN ${B.n.toUpperCase()}`;const[p,q,w,l]=c.r;return w?`- ${l}: ${fq(x.q,x.u)} al peso (≈${eur(c.buy)})`:`- ${Math.ceil(x.q/q-1e-9)} × ${l} (${eur(p)} c/u = ${eur(c.buy)})`};
+    const txt=`Pedido ${B.n} · semana ${W+1} (${fd(dateOf(W,0))} – ${fd(dateOf(W,6))})\nProductos: ${eur(TT[b].buy)} + ${bb==="d"?"recogida Drive":"envío"} ${eur(sh)} = ${eur(TT[b].buy+sh)}\n\n`+PL.slice().sort((a,b)=>a.n.localeCompare(b.n,"es")).map(ln).join("\n");
     navigator.clipboard.writeText(txt).then(()=>toast("Pedido copiado"),()=>toast("No se pudo copiar"));return}
   if(t.id==="pxreset"){S.px={};save();render();toast("Precios originales restaurados");return}
   if(t.id==="copy"){
-    const PL=priced(W),md=S.buy||S.mode,TT=totals(PL),C=x=>md==="best"?x.best:x.cs[md];
+    const PL=priced(W),md=S.buy?SRC(S.buy):S.mode,TT=totals(PL),C=x=>md==="best"?x.best:x.cs[md];
     const ln=x=>{const c=C(x);return`- ${x.n}: ${fq(x.q,x.u)}${c?` · ${eur(c.buy)} (${c.r[3]})`:""}`};
     const blk=(h,g)=>g.length?`\n${h}\n`+g.sort((a,b)=>a.n.localeCompare(b.n,"es")).map(ln).join("\n"):"";
     const body=md==="best"?SH.map(([s,n])=>blk(n,PL.filter(x=>x.best&&x.bs===s))).join("\n")+blk("Sin precio",PL.filter(x=>!x.best)):CATS.map(([c,l])=>blk(l,PL.filter(x=>x.c===c))).join("\n");
